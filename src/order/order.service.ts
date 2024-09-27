@@ -1,15 +1,13 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Model } from 'mongoose';
-import { Order } from './interfaces/order.interface';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order-dto';
+import { Order } from './order.schema';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class OrderService {
-  constructor(
-    @Inject('ORDER_MODEL')
-    private orderModel: Model<Order>,
-  ) {}
+  constructor(@InjectModel(Order.name) private orderModel: Model<Order>) {}
 
   async create(createOrderDto: CreateOrderDto): Promise<Order> {
     const createdOrder = new this.orderModel(createOrderDto);
