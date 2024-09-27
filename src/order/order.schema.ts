@@ -1,4 +1,5 @@
-import * as mongoose from 'mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 
 export enum OrderStatus {
   CREATED = 'Created',
@@ -8,18 +9,34 @@ export enum OrderStatus {
   SHIPPED = 'Shipped',
 }
 
-export const OrderSchema = new mongoose.Schema({
-  orderId: { type: String, required: true, unique: true },
-  price: { type: Number, required: true },
-  quantity: { type: Number, required: true },
-  productId: { type: String, required: true },
-  customerId: { type: String, required: true },
-  sellerId: { type: String, required: true },
-  status: {
-    type: String,
-    enum: Object.values(OrderStatus),
-    default: OrderStatus.CREATED,
-  },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-});
+@Schema()
+export class Order extends Document {
+  @Prop({ required: true, unique: true })
+  orderId: string;
+
+  @Prop({ required: true })
+  price: number;
+
+  @Prop({ required: true })
+  quantity: number;
+
+  @Prop({ required: true })
+  productId: string;
+
+  @Prop({ required: true })
+  customerId: string;
+
+  @Prop({ required: true })
+  sellerId: string;
+
+  @Prop({ required: true, enum: OrderStatus, default: OrderStatus.CREATED })
+  status: OrderStatus;
+
+  @Prop({ default: Date.now })
+  createdAt: Date;
+
+  @Prop({ default: Date.now })
+  updatedAt: Date;
+}
+
+export const OrderSchema = SchemaFactory.createForClass(Order);
