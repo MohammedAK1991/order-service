@@ -9,13 +9,16 @@ import {
   Query,
   HttpException,
   HttpStatus,
+  UseFilters,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { Order } from './interfaces/order.interface';
 import { UpdateOrderDto } from './dto/update-order-dto';
+import { Order } from './interfaces/order.interface';
+import { AllExceptionsFilter } from '../common/http-exception.filter';
 
 @Controller('orders')
+@UseFilters(AllExceptionsFilter)
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
@@ -23,9 +26,9 @@ export class OrderController {
   async createOrder(@Body() createOrderDto: CreateOrderDto): Promise<Order> {
     try {
       return await this.orderService.create(createOrderDto);
-    } catch {
+    } catch (error) {
       throw new HttpException(
-        'Failed to create order',
+        `Failed to create order: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -35,9 +38,9 @@ export class OrderController {
   async listOrders(@Query('sellerId') sellerId: string): Promise<Order[]> {
     try {
       return await this.orderService.findAll(sellerId);
-    } catch {
+    } catch (error) {
       throw new HttpException(
-        'Failed to retrieve orders',
+        `Failed to retrieve orders: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -48,7 +51,10 @@ export class OrderController {
     try {
       const order = await this.orderService.findOne(orderId);
       if (!order) {
-        throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          `Order with ID ${orderId} not found`,
+          HttpStatus.NOT_FOUND,
+        );
       }
       return order;
     } catch (error) {
@@ -56,7 +62,7 @@ export class OrderController {
         throw error;
       }
       throw new HttpException(
-        'Failed to retrieve order',
+        `Failed to retrieve order: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -73,7 +79,10 @@ export class OrderController {
         updateOrderDto,
       );
       if (!updatedOrder) {
-        throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          `Order with ID ${orderId} not found`,
+          HttpStatus.NOT_FOUND,
+        );
       }
       return updatedOrder;
     } catch (error) {
@@ -81,7 +90,7 @@ export class OrderController {
         throw error;
       }
       throw new HttpException(
-        'Failed to update order',
+        `Failed to update order: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -96,7 +105,7 @@ export class OrderController {
         throw error;
       }
       throw new HttpException(
-        'Failed to delete order',
+        `Failed to delete order: ${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
