@@ -2,19 +2,20 @@ import {
   Controller,
   Get,
   Post,
-  Put,
+  Patch,
   Delete,
   Body,
   Param,
   Query,
   HttpException,
   HttpStatus,
+  HttpCode,
   UseFilters,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { Order } from './interfaces/order.interface';
+import { Order } from './order.schema';
 import { AllExceptionsFilter } from '../common/http-exception.filter';
 
 @Controller('orders')
@@ -23,6 +24,7 @@ export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Post()
+  @HttpCode(201)
   async createOrder(@Body() createOrderDto: CreateOrderDto): Promise<Order> {
     try {
       return await this.orderService.create(createOrderDto);
@@ -35,7 +37,7 @@ export class OrderController {
   }
 
   @Get()
-  async listOrders(@Query('sellerId') sellerId: string): Promise<Order[]> {
+  async listOrders(@Query('sellerId') sellerId?: string): Promise<Order[]> {
     try {
       return await this.orderService.findAll(sellerId);
     } catch (error) {
@@ -46,13 +48,13 @@ export class OrderController {
     }
   }
 
-  @Get(':orderId')
-  async getOrder(@Param('orderId') orderId: string): Promise<Order> {
+  @Get(':id')
+  async getOrder(@Param('id') id: string): Promise<Order> {
     try {
-      const order = await this.orderService.findOne(orderId);
+      const order = await this.orderService.findOne(id);
       if (!order) {
         throw new HttpException(
-          `Order with ID ${orderId} not found`,
+          `Order with ID ${id} not found`,
           HttpStatus.NOT_FOUND,
         );
       }
@@ -68,19 +70,16 @@ export class OrderController {
     }
   }
 
-  @Put(':orderId')
+  @Patch(':id')
   async updateOrder(
-    @Param('orderId') orderId: string,
+    @Param('id') id: string,
     @Body() updateOrderDto: UpdateOrderDto,
   ): Promise<Order> {
     try {
-      const updatedOrder = await this.orderService.update(
-        orderId,
-        updateOrderDto,
-      );
+      const updatedOrder = await this.orderService.update(id, updateOrderDto);
       if (!updatedOrder) {
         throw new HttpException(
-          `Order with ID ${orderId} not found`,
+          `Order with ID ${id} not found`,
           HttpStatus.NOT_FOUND,
         );
       }
@@ -96,10 +95,11 @@ export class OrderController {
     }
   }
 
-  @Delete(':orderId')
-  async deleteOrder(@Param('orderId') orderId: string): Promise<void> {
+  @Delete(':id')
+  @HttpCode(204)
+  async deleteOrder(@Param('id') id: string): Promise<void> {
     try {
-      await this.orderService.delete(orderId);
+      await this.orderService.delete(id);
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
