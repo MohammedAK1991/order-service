@@ -4,12 +4,14 @@ import { Model } from 'mongoose';
 import { Order, OrderStatus } from './order.schema';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { pubsubClient, TOPIC_NAME } from '../config/pubsub.config';
+import { PubSubService } from '../pubsub/pubsub.service';
+import { TOPIC_NAME } from 'src/constants';
 
 @Injectable()
 export class OrderService {
   constructor(
     @InjectModel(Order.name) private readonly orderModel: Model<Order>,
+    private readonly pubSubService: PubSubService,
   ) {}
 
   async create(createOrderDto: CreateOrderDto): Promise<Order> {
@@ -56,18 +58,17 @@ export class OrderService {
   }
 
   private async publishOrderEvent(order: Order): Promise<void> {
-    const messageData = JSON.stringify({
+    const messageData = {
       orderId: order.orderId,
       status: order.status,
       updatedAt: order.updatedAt,
-    });
-
-    const dataBuffer = Buffer.from(messageData);
+    };
 
     try {
-      const messageId = await pubsubClient
-        .topic(TOPIC_NAME)
-        .publishMessage({ data: dataBuffer });
+      const messageId = await this.pubSubService.publishMessage(
+        TOPIC_NAME,
+        messageData,
+      );
       console.log(`Message ${messageId} published for order ${order.orderId}`);
     } catch (error) {
       console.error('Error publishing message:', error);

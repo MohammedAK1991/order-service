@@ -2,7 +2,7 @@ import { Document } from 'mongoose';
 import { OrderStatus } from '../order.schema';
 
 export interface Order extends Document {
-  orderId: string;
+  orderId?: string;
   price: number;
   quantity: number;
   productId: string;
