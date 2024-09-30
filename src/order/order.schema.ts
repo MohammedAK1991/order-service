@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 
 export enum OrderStatus {
   CREATED = 'Created',
@@ -11,7 +11,10 @@ export enum OrderStatus {
 
 @Schema()
 export class Order extends Document {
-  @Prop({ required: true, unique: true })
+  @Prop({ type: MongooseSchema.Types.ObjectId, auto: true })
+  _id: string;
+
+  @Prop({ type: String, unique: true })
   orderId: string;
 
   @Prop({ required: true })
@@ -29,7 +32,7 @@ export class Order extends Document {
   @Prop({ required: true })
   sellerId: string;
 
-  @Prop({ required: true, enum: OrderStatus, default: OrderStatus.CREATED })
+  @Prop({ type: String, enum: OrderStatus, default: OrderStatus.CREATED })
   status: OrderStatus;
 
   @Prop({ default: Date.now })
@@ -40,3 +43,10 @@ export class Order extends Document {
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
+
+OrderSchema.pre('save', function (next) {
+  if (this.isNew) {
+    this.orderId = this._id.toString();
+  }
+  next();
+});
