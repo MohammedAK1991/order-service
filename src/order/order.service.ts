@@ -4,7 +4,6 @@ import { Model } from 'mongoose';
 import { Order, OrderStatus } from './order.schema';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { v4 as uuidv4 } from 'uuid';
 import { pubsubClient, TOPIC_NAME } from '../config/pubsub.config';
 
 @Injectable()
@@ -16,7 +15,6 @@ export class OrderService {
   async create(createOrderDto: CreateOrderDto): Promise<Order> {
     const createdOrder = new this.orderModel({
       ...createOrderDto,
-      orderId: uuidv4(),
       status: OrderStatus.CREATED,
     });
     const savedOrder = await createdOrder.save();
@@ -31,47 +29,29 @@ export class OrderService {
     return this.orderModel.find().exec();
   }
 
-  async findOne(orderId: string): Promise<Order> {
-    const order = await this.orderModel.findOne({ orderId }).exec();
+  async findOne(id: string): Promise<Order> {
+    const order = await this.orderModel.findById(id).exec();
     if (!order) {
-      throw new NotFoundException(`Order with ID ${orderId} not found`);
+      throw new NotFoundException(`Order with ID ${id} not found`);
     }
     return order;
   }
 
-  async update(
-    orderId: string,
-    updateOrderDto: UpdateOrderDto,
-  ): Promise<Order> {
+  async update(id: string, updateOrderDto: UpdateOrderDto): Promise<Order> {
     const updatedOrder = await this.orderModel
-      .findOneAndUpdate({ orderId }, updateOrderDto, { new: true })
+      .findByIdAndUpdate(id, updateOrderDto, { new: true })
       .exec();
     if (!updatedOrder) {
-      throw new NotFoundException(`Order with ID ${orderId} not found`);
+      throw new NotFoundException(`Order with ID ${id} not found`);
     }
     await this.publishOrderEvent(updatedOrder);
     return updatedOrder;
   }
 
-  async updateStatus(orderId: string, status: OrderStatus): Promise<Order> {
-    const updatedOrder = await this.orderModel
-      .findOneAndUpdate(
-        { orderId },
-        { status, updatedAt: new Date() },
-        { new: true },
-      )
-      .exec();
-    if (!updatedOrder) {
-      throw new NotFoundException(`Order with ID ${orderId} not found`);
-    }
-    await this.publishOrderEvent(updatedOrder);
-    return updatedOrder;
-  }
-
-  async delete(orderId: string): Promise<void> {
-    const result = await this.orderModel.deleteOne({ orderId }).exec();
-    if (result.deletedCount === 0) {
-      throw new NotFoundException(`Order with ID ${orderId} not found`);
+  async delete(id: string): Promise<void> {
+    const result = await this.orderModel.findByIdAndDelete(id).exec();
+    if (!result) {
+      throw new NotFoundException(`Order with ID ${id} not found`);
     }
   }
 
@@ -82,14 +62,13 @@ export class OrderService {
       updatedAt: order.updatedAt,
     });
 
-    // Publishes the message as a string, e.g. "Hello, world!" or JSON.stringify(someObject)
     const dataBuffer = Buffer.from(messageData);
 
     try {
       const messageId = await pubsubClient
         .topic(TOPIC_NAME)
         .publishMessage({ data: dataBuffer });
-      console.log(`Message ${messageId} published.`);
+      console.log(`Message ${messageId} published for order ${order.orderId}`);
     } catch (error) {
       console.error('Error publishing message:', error);
     }
