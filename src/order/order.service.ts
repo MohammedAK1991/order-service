@@ -5,7 +5,7 @@ import { Order, OrderStatus } from './order.schema';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { PubSubService } from '../pubsub/pubsub.service';
-import { TOPIC_NAME } from 'src/constants';
+import { TOPIC_NAME } from '../constants';
 
 @Injectable()
 export class OrderService {
