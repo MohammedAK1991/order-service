@@ -1,4 +1,4 @@
-# Use Node.js version 18 as the base image
+# Use an official Node runtime as the base image
 FROM node:18
 
 # Set the working directory in the container
@@ -16,8 +16,17 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Expose the port the app runs on
-EXPOSE 3000
+# Set default values for environment variables
+ENV MONGODB_URI=mongodb://mongo:27017/orderdb
+ENV GOOGLE_CLOUD_PROJECT_ID=mediamarket-interview
+ENV PUBSUB_TOPIC_NAME=projects/mediamarket-interview/topics/order-events
+ENV GOOGLE_CLOUD_KEY_FILE=secrets/google_cloud_pubsub_key.json
+ENV PORT=3002
 
-# Define the command to run the app
+# Expose the port the app runs on
+EXPOSE ${PORT}
+
+# Command to run the application
 CMD ["npm", "run", "start:prod"]
+
+
