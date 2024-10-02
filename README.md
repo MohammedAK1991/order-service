@@ -45,11 +45,42 @@ Before you begin, ensure you have met the following requirements:
    GOOGLE_CLOUD_KEY_FILE=path_to_your_gcp_key_file.json
    TOPIC_NAME=your_pubsub_topic_name
    ```
+4. Create a `.env` file in the project root with the following content:
+```
+mkdir secrets
+cp path/to/your/keyfile.json secrets/google_cloud_pubsub_key.json
+```
 
-## Running the Application
+## Running the Application with Docker
 
-To run the application in development mode:
+Build and run the services using Docker Compose:
+```
+docker-compose up --build
+```
 
+
+This will start the Order Service on port 3002 and MongoDB on port 27017.
+
+5. To stop the services:
+
+```
+docker-compose down
+```
+
+
+## Running the Application locally
+
+1. Install MongoDB Community Edition:
+- For Ubuntu: Follow the [official MongoDB installation guide](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/)
+- For other operating systems, refer to the [MongoDB documentation](https://docs.mongodb.com/manual/installation/)
+
+2. Start MongoDB:
+
+```
+sudo systemctl start mongod
+```
+
+3. Run the application in development mode:
 ```
 npm run start:dev
 ```
