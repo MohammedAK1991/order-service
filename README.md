@@ -45,7 +45,7 @@ Before you begin, ensure you have met the following requirements:
    GOOGLE_CLOUD_KEY_FILE=path_to_your_gcp_key_file.json
    TOPIC_NAME=your_pubsub_topic_name
    ```
-4. Create a `.env` file in the project root with the following content:
+4. Set up Google Cloud credentials:
 ```
 mkdir secrets
 cp path/to/your/keyfile.json secrets/google_cloud_pubsub_key.json

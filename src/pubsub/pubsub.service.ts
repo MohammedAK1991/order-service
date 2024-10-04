@@ -16,6 +16,7 @@ export class PubSubService {
     });
   }
 
+  // handle scenario when message isnt published
   async publishMessage(topicName: string, data: any): Promise<string> {
     const dataBuffer = Buffer.from(JSON.stringify(data));
 
